@@ -1,4 +1,8 @@
+import 'package:counter_with_bloc_pattern/counter_bloc.dart';
+import 'package:counter_with_bloc_pattern/counter_event.dart';
+import 'package:counter_with_bloc_pattern/counter_state.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 void main() {
   runApp(const MyApp());
@@ -10,74 +14,97 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
+    return BlocProvider<CounterBloc>(
+      create: (context) => CounterBloc(),
+      child: MaterialApp(
+        title: 'Flutter Demo',
+        theme: ThemeData(primarySwatch: Colors.blue),
+        home: const MyHomePage(),
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
+class MyHomePage extends StatelessWidget {
+  const MyHomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        
+        centerTitle: true,
+        title: const Text("Block Demo APP"),
+        backgroundColor: const Color.fromRGBO(0, 174, 255, 1),
       ),
-      body: Center(
-        child: Column(
-          
-        ),
+      body: BlocBuilder<CounterBloc, CounterStates>(
+        builder: (context, state) {
+          if (state is InitialState) {
+            return const Counter(counter: 0);
+          }
+          if (state is UpdateState) {
+            return Counter(counter: state.counter);
+          }
+          return Container();
+        },
+      ),
+    );
+  }
+}
+
+class Counter extends StatelessWidget {
+  final int counter;
+
+  const Counter({super.key, required this.counter});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            counter.toString(),
+            style: Theme.of(context).textTheme.headlineLarge,
+          ),
+          const SizedBox(
+            height: 50,
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              MaterialButton(
+                color: Colors.red,
+                elevation: 0.0,
+                height: 50,
+                shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(0))),
+                child: const Text(
+                  "-",
+                  style: TextStyle(fontSize: 22, color: Colors.white),
+                ),
+                onPressed: () {
+                  context.read<CounterBloc>().add(NumberDecreaseEvent());
+                },
+              ),
+              const SizedBox(
+                width: 50,
+              ),
+              MaterialButton(
+                  color: Colors.green,
+                  elevation: 0.0,
+                  height: 50,
+                  shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(8))),
+                  child: const Text(
+                    "+",
+                    style: TextStyle(fontSize: 22, color: Colors.white),
+                  ),
+                  onPressed: () {
+                    context.read<CounterBloc>().add(NumberIncreaseEvent());
+                  })
+            ],
+          )
+        ],
       ),
     );
   }
